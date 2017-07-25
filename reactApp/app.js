@@ -1,5 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+
+import App from './Components/App.js'
 import MyEditor from './editor.js';
 require('./css/main.css')
 
@@ -9,5 +11,5 @@ require('./css/main.css')
 // .then(text => console.log(text))
 // .catch(err => {throw err})
 
-ReactDOM.render(<MyEditor />,
+ReactDOM.render(<App />,
    document.getElementById('root'));
