@@ -40,18 +40,20 @@
     "draft-js": "^0.10.1",
     "express": "^4.15.3",
     "express-session": "^1.15.4",
+    "immutable": "^3.8.1",
+    "material-ui": "^0.18.7",
     "mongoose": "^4.11.4",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
-    "immutable": "^3.8.1",
-    "material-ui": "^0.18.7",
     "react": "^15.6.1",
     "react-color": "^2.13.4",
     "react-dom": "^15.6.1",
-    "react-tap-event-plugin": "^2.0.1",
-    "style-loader": "^0.18.2",
     "react-router": "^4.1.2",
-    "react-router-dom": "^4.1.2"
+    "react-router-dom": "^4.1.2",
+    "react-tap-event-plugin": "^2.0.1",
+    "socket.io": "^2.0.3",
+    "socket.io-client": "^2.0.3",
+    "style-loader": "^0.18.2"
   }
 }

@@ -26,6 +26,8 @@ var validateReq = function(userData) {
   return (userData.password === userData.passwordRepeat);
 };
 
+
+
 // Passport
 app.use(session({
   secret: 'Secret',
@@ -153,9 +155,13 @@ app.post('/saveDocument/:docId', function(req,res){
   Document.findById(req.params.docId).exec( function(err, foundDoc){
     console.log("FOUND DOC!", foundDoc)
     if (err) {console.log(err)}
-    foundDoc.body = req.body.updatedDocument;
+    foundDoc.body = req.body.updatedDocument
+    foundDoc.font = req.body.currentFontSize
+    foundDoc.inlineStyles = req.body.inlineStyles
+    console.log("BODDDDY", req.body.currentFontSize)
     foundDoc.save(function(err, updatedDocument){
       if (err) {console.log(err)}
+      console.log("this", updatedDocument)
       res.json({success: true})
     })
   })

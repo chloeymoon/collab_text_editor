@@ -1,5 +1,5 @@
 var React = require('react');
-import {DefaultDraftBlockRenderMap, Editor, EditorState, RichUtils, convertToRaw, convertFromRaw} from 'draft-js';
+import {DefaultDraftBlockRenderMap, Editor, EditorState, RichUtils} from 'draft-js';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -12,8 +12,6 @@ import { BlockPicker } from 'react-color';
 import Popover from 'material-ui/Popover';
 require('./css/main.css')
 import { Map } from 'immutable';
-
-import { Link } from 'react-router-dom'
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
@@ -49,16 +47,14 @@ class MyEditor extends React.Component {
     }).then((response) => {
       return (response.json())
     }).then((obj)=>{
-      const rawCS =  JSON.parse(obj.body);
-      const contentState = convertFromRaw(rawCS);
-      const newState = EditorState.createWithContent(contentState);
-      console.log(this.state.editorState)
+      console.log(obj.body, "body")
+      // const rawCS =  JSON.parse(data.doc.text);
+      // const contentState = convertFromRaw(rawCS);
+      // const newState = EditorState.createWithContent(contentState);
       this.setState({
-        editorState: newState,
-        currentFontSize: obj.font,
-        inlineStyles: obj.inlineStyles
+        editorState: obj.body
       })
-      console.log("HERE", this.state.currentFontSize)
+      console.log(this.state.editorState)
     }).catch((err) => {
       console.log(err)
     })
@@ -66,20 +62,18 @@ class MyEditor extends React.Component {
 
   //Saves Document to Database
   saveDocument() {
-    const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
-    const strCS = JSON.stringify(rawCS);
-    console.log(this.state.editorState)
+    // const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
+    // const strCS = JSON.stringify(rawCS);
+    console.log("STATE TO SAVE", this.state.editorState)
     fetch('http://localhost:3000/saveDocument/'+this.props.match.params.docId, {
       method: 'POST',
       credentials: 'include',
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        updatedDocument: strCS,
-        currentFontSize: this.state.currentFontSize,
-        inlineStyles: this.state.inlineStyles
-      })
+      body: {
+        updatedDocument: JSON.stringify(this.state.editorState)
+      }
     }).then((response) => {
       return response.json()
     }).then((response) => {
@@ -169,21 +163,14 @@ class MyEditor extends React.Component {
 
   applyChangeFontSize(shrink) {
     var newFontSize = this.state.currentFontSize + (shrink? -4 : 4)
-    var thingToRemove = String(this.state.currentFontSize)
-    console.log(thingToRemove, "TO REMOVE")
-    var currentState = Object.assign({}, this.state.inlineStyles)
-    console.log(currentState, "CURRENT STATE")
-    delete currentState[this.state.currentFontSize]
-    console.log(currentState, "CURRENT STATE2")
     var newInlineStyles= Object.assign(
       {},
-      currentState,
+      this.state.inlineStyles,
       {[newFontSize]: {
         fontSize: `${newFontSize}px`
       }
 
       })
-      console.log('NEW INLINE', newInlineStyles)
     this.setState({
       inlineStyles: newInlineStyles,
       editorState: RichUtils.toggleInlineStyle(this.state.editorState, String(newFontSize)),
@@ -206,12 +193,7 @@ class MyEditor extends React.Component {
     return (
       <div className='container'>
       <MuiThemeProvider>
-      <AppBar title="Document Name" iconElementRight={
-        <div>
-          <FlatButton onClick={() => this.saveDocument()} label="Save" />
-          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
-        </div>
-      }/>
+      <AppBar title="Document Name" iconElementRight={<FlatButton onClick={() => this.saveDocument()} label="Save" />}/>
       </MuiThemeProvider>
       <div className="toolbar">
         {this.formatButton({icon: 'format_bold', style: 'BOLD'})}

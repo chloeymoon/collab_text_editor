@@ -15,6 +15,8 @@ const documentSchema = mongoose.Schema({
   },
   collaborators: Array,
   body: Object,
+  font: Number,
+  inlineStyles: Object,
   password: String
 })
 const User = mongoose.model('User', userSchema)
