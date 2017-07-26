@@ -98,7 +98,8 @@ app.post('/register', function(req, res) {
         var document = new Document({
           title: req.body.title,
           author: req.user.id,
-          collaborators: [req.user.id]
+          collaborators: [req.user.id],
+          body: {}
         })
         document.save(function(err,document){
           if(err){
@@ -137,6 +138,28 @@ app.post('/register', function(req, res) {
           res.json(newDocs)
         })
       })
+
+//Load Editor with Relevant Information
+app.get('/editDocument/:docId', function(req,res){
+  Document.findById(req.params.docId).exec(function(err,doc){
+    console.log(req.params.docId)
+    console.log(doc)
+    res.json(doc)
+  })
+})
+
+//Save Document to Database
+app.post('/saveDocument/:docId', function(req,res){
+  Document.findById(req.params.docId).exec( function(err, foundDoc){
+    console.log("FOUND DOC!", foundDoc)
+    if (err) {console.log(err)}
+    foundDoc.body = req.body.updatedDocument;
+    foundDoc.save(function(err, updatedDocument){
+      if (err) {console.log(err)}
+      res.json({success: true})
+    })
+  })
+})
 
 // Example route
 app.get('/', function (req, res) {

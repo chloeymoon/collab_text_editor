@@ -33,8 +33,54 @@ class MyEditor extends React.Component {
       currentFontSize: 12,
       inlineStyles: {}
     };
+    console.log(this.props.match.params.docId)
     this.onChange = (editorState) => this.setState({editorState});
   }
+
+  //Renders the Page with Information
+  componentDidMount () {
+    fetch('http://localhost:3000/editDocument/'+this.props.match.params.docId, {
+      method: 'GET',
+      credentials: 'include',
+      success: function(data) {
+      }
+    }).then((response) => {
+      return (response.json())
+    }).then((obj)=>{
+      console.log(obj.body, "body")
+      // const rawCS =  JSON.parse(data.doc.text);
+      // const contentState = convertFromRaw(rawCS);
+      // const newState = EditorState.createWithContent(contentState);
+      this.setState({
+        editorState: obj.body
+      })
+      console.log(this.state.editorState)
+    }).catch((err) => {
+      console.log(err)
+    })
+  }
+
+  //Saves Document to Database
+  saveDocument() {
+    // const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
+    // const strCS = JSON.stringify(rawCS);
+    fetch('http://localhost:3000/saveDocument/'+this.props.match.params.docId, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: {
+        updatedDocument: this.state.editorState;
+      }
+    }).then((response) => {
+      return response.json()
+    }).then((response) => {
+      console.log(response)
+    })
+  }
+
+
 
   toggleFormat(e, style, block) {
     e.preventDefault();
@@ -146,7 +192,7 @@ class MyEditor extends React.Component {
     return (
       <div className='container'>
       <MuiThemeProvider>
-      <AppBar title="Document Name" iconElementRight={<FlatButton label="Save" />}/>
+      <AppBar title="Document Name" iconElementRight={<FlatButton onClick={() => this.saveDocument()} label="Save" />}/>
       </MuiThemeProvider>
       <div className="toolbar">
         {this.formatButton({icon: 'format_bold', style: 'BOLD'})}
