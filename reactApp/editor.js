@@ -15,6 +15,7 @@ import { Map } from 'immutable';
 
 import { Link } from 'react-router-dom'
 
+
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
     wrapper:<div className="left-align"/>
@@ -27,6 +28,10 @@ const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   }
 }))
 
+
+//M3
+import io from 'socket.io-client'
+
 class MyEditor extends React.Component {
   constructor(props) {
     super(props);
@@ -35,8 +40,96 @@ class MyEditor extends React.Component {
       currentFontSize: 12,
       inlineStyles: {}
     };
-    console.log(this.props.match.params.docId)
-    this.onChange = (editorState) => this.setState({editorState});
+
+    this.previousHighlight = null;
+    //M3 - listens on the client side - can also go into componenet did mount
+    this.socket = io('http://localhost:3000');
+    this.socket.emit('hello');
+
+
+    //listener for user join event
+    this.socket.on('userJoined', () => {
+      console.log('user joined');
+    });
+    //emits the document ID when joined
+    this.socket.emit('join', {doc: this.props.match.params.docId});
+
+
+    //event handler for updating editor content when other user edits
+    this.socket.on('receiveNewContent', stringifiedContent => {
+      const contentState = convertFromRaw(JSON.parse(stringifiedContent));
+      const newEditorState = EditorState.createWithContent(contentState);
+      this.setState({ editorState: newEditorState});
+    });
+
+
+    //event handler for cursor
+    this.socket.on('receiveNewCursor', incomingSelectionObj => {
+    let editorState = this.state.editorState
+    const ogEditorState = editorState //saving original editorstate
+    const ogSelection = editorState.getSelection() //saving original selection
+
+    const incomingSelectionState = ogSelection.merge(incomingSelectionObj) //taking original selection state and changing values to incoming one
+
+    //change editor state to have the new selection state
+    const temporaryEditorState = EditorState.forceSelection(ogEditorState, incomingSelectionState)
+
+    //if you set this editor state to the current editor state, the windows cursor will move
+    //second argument is a function that runs once setState has completed!
+    this.setState({editorState: temporaryEditorState}, () => {
+
+      //getting window selection, different from the draft selection
+      const winSel = window.getSelection();
+      const range = winSel.getRangeAt(0)
+      //gives you screen coordinates that you can use to draw a box
+      const rects = range.getClientRects()[0];
+      const {top, left, bottom } = rects //shorthand for const top= rects.top
+
+      //save the coordinates and restore original editorState
+      this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
+    })
+  })
+
+
+
+    this.socket.on('userLeft', () => {
+      console.log("user left");
+    });
+
+    this.onChange = (editorState) => {
+      //save current selection
+      const selection = editorState.getSelection()
+
+
+      //need a new editor state with old selection to toggle that style
+      if (this.previousHighlight) {
+
+        //new editor state with old highlight selected
+        editorState = EditorState.acceptSelection(editorState, this.previousHighlight)
+
+        //toggle off the old highlight
+        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+
+        //come back to most recent selection
+        editorState = EditorState.acceptSelection(editorState, selection)
+        this.previousHighlight = null;
+      }
+
+
+      if (selection.getStartOffset() === selection.getEndOffset()) {
+        this.socket.emit('cursorMove', selection);
+      } else {
+        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+        this.previousHighlight = editorState.getSelection()
+      }
+
+      const contentState = editorState.getCurrentContent(); //want to send this to the other client
+      //contentState as is is unshippable
+      //there is a function that comes with content state called convertToRaw
+      const stringifiedContent = JSON.stringify(convertToRaw(contentState));
+      this.socket.emit('newContent', stringifiedContent);
+      this.setState({editorState});
+    };
   }
 
   //Renders the Page with Information
@@ -52,23 +145,30 @@ class MyEditor extends React.Component {
       const rawCS =  JSON.parse(obj.body);
       const contentState = convertFromRaw(rawCS);
       const newState = EditorState.createWithContent(contentState);
-      console.log(this.state.editorState)
+      //console.log(this.state.editorState)
       this.setState({
         editorState: newState,
         currentFontSize: obj.font,
         inlineStyles: obj.inlineStyles
       })
-      console.log("HERE", this.state.currentFontSize)
+      return
+      //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
       console.log(err)
     })
+
+  }
+
+//M3to disconnecte
+  componentWillUnmount(){
+    this.socket.disconnect();
   }
 
   //Saves Document to Database
   saveDocument() {
     const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
     const strCS = JSON.stringify(rawCS);
-    console.log(this.state.editorState)
+    //console.log(this.state.editorState)
     fetch('http://localhost:3000/saveDocument/'+this.props.match.params.docId, {
       method: 'POST',
       credentials: 'include',
@@ -170,11 +270,11 @@ class MyEditor extends React.Component {
   applyChangeFontSize(shrink) {
     var newFontSize = this.state.currentFontSize + (shrink? -4 : 4)
     var thingToRemove = String(this.state.currentFontSize)
-    console.log(thingToRemove, "TO REMOVE")
+    //console.log(thingToRemove, "TO REMOVE")
     var currentState = Object.assign({}, this.state.inlineStyles)
-    console.log(currentState, "CURRENT STATE")
+    //console.log(currentState, "CURRENT STATE")
     delete currentState[this.state.currentFontSize]
-    console.log(currentState, "CURRENT STATE2")
+    //console.log(currentState, "CURRENT STATE2")
     var newInlineStyles= Object.assign(
       {},
       currentState,
@@ -183,7 +283,7 @@ class MyEditor extends React.Component {
       }
 
       })
-      console.log('NEW INLINE', newInlineStyles)
+      //console.log('NEW INLINE', newInlineStyles)
     this.setState({
       inlineStyles: newInlineStyles,
       editorState: RichUtils.toggleInlineStyle(this.state.editorState, String(newFontSize)),
@@ -205,6 +305,16 @@ class MyEditor extends React.Component {
   render() {
     return (
       <div className='container'>
+
+      {this.state.top && (
+        <div
+        style = {{position: 'absolute',
+          backgroundColor: 'red',
+          width: '5px',
+          height: this.state.height,
+          top: this.state.top, left: this.state.left}}>
+        </div>
+      )}
       <MuiThemeProvider>
       <AppBar title="Document Name" iconElementRight={
         <div>
@@ -229,7 +339,7 @@ class MyEditor extends React.Component {
 
       <div className='editorcontainer'>
       <div className='editor'>
-      <Editor customStyleMap={this.state.inlineStyles} editorState={this.state.editorState} onChange={this.onChange}
+      <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"RED": {backgroundColor:'red'}})} editorState={this.state.editorState} onChange={this.onChange}
         blockRenderMap={myBlockTypes}/>
       </div>
       </div>

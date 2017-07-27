@@ -126,7 +126,7 @@ class DocumentPortal extends React.Component {
 
         <div>
           <p>Shared Documents</p>
-          {this.state.sharedDocuments.map((doc) => <div><Link to="/editor">{doc.title}</Link></div>)}
+          {this.state.sharedDocuments.map((doc) => <div><Link to={`/editor/${doc._id}`}>{doc.title}</Link></div>)}
         </div>
 
         <input
