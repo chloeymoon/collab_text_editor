@@ -172,8 +172,21 @@ app.get('/', function (req, res) {
   res.send('Hello World!')
 })
 
-app.listen(3000, function () {
+//collaborative websockets
+var server = require('http').Server(app)
+var io = require('socket.io')(server)
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+
+})
+
+server.listen(3000, function () {
   console.log('Backend server for Electron App running on port 3000!')
 })
+
+
+
 
 module.exports = app

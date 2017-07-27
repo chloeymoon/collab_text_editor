@@ -15,6 +15,11 @@ import { Map } from 'immutable';
 
 import { Link } from 'react-router-dom'
 
+//collaborative socket
+import io from 'socket.io-client'
+// const socket = io()
+
+
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
     wrapper:<div className="left-align"/>
@@ -31,10 +36,12 @@ class MyEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      socket: io('http://localhost:3000'),
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
       inlineStyles: {}
     };
+    // this.socket = io('http://localhost:3000')
     console.log(this.props.match.params.docId)
     this.onChange = (editorState) => this.setState({editorState});
   }
@@ -58,9 +65,14 @@ class MyEditor extends React.Component {
         currentFontSize: obj.font,
         inlineStyles: obj.inlineStyles
       })
+      return
       console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
       console.log(err)
+    })
+
+    this.state.socket.on('connect', ()=> {
+      console.log("CONNECTED TO SOCKETS");
     })
   }
 
