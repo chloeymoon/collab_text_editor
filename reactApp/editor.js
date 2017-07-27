@@ -15,10 +15,6 @@ import { Map } from 'immutable';
 
 import { Link } from 'react-router-dom'
 
-//collaborative socket
-import io from 'socket.io-client'
-// const socket = io()
-
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
@@ -32,16 +28,27 @@ const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   }
 }))
 
+
+//M3
+import io from 'socket.io-client'
+
 class MyEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      socket: io('http://localhost:3000'),
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
       inlineStyles: {}
     };
-    // this.socket = io('http://localhost:3000')
+    //M3 - listens on the client side - can also go into componenet did mount
+    this.socket = io('http://localhost:3000')
+    this.socket.emit('hello')
+    this.socket.on('userJoined', () => {
+      console.log("user Joined")
+    })
+    //emits the document ID when joined
+    this.socket.emit('join', {doc: this.props.match.params.docId})
+
     console.log(this.props.match.params.docId)
     this.onChange = (editorState) => this.setState({editorState});
   }
@@ -71,9 +78,11 @@ class MyEditor extends React.Component {
       console.log(err)
     })
 
-    this.state.socket.on('connect', ()=> {
-      console.log("CONNECTED TO SOCKETS");
-    })
+  }
+
+//M3to disconnecte
+  componentWillUnmount(){
+    this.socket.disconnect();
   }
 
   //Saves Document to Database

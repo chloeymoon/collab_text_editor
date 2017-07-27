@@ -22,6 +22,34 @@ var mongoose = require('mongoose');
 var connect = process.env.MONGODB_URI
 mongoose.connect(connect);
 
+
+//M3 Collaborative
+const server = require('http').createServer(app)
+const io = require('socket.io')(server)
+
+io.on('connection', socket =>{
+
+  socket.on('hello', () => {
+    console.log('hello');
+  })
+
+  socket.on('join', ({doc}) => {
+    console.log('join', doc)
+    socket.emit('userJoined')
+
+    //sets up "room" named doc
+    socket.join(doc)
+
+    //sends to everyone else in room named doc
+    socket.broadcast.to(doc)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected!')
+  })
+})
+
+
 var validateReq = function(userData) {
   return (userData.password === userData.passwordRepeat);
 };
@@ -172,21 +200,12 @@ app.get('/', function (req, res) {
   res.send('Hello World!')
 })
 
-//collaborative websockets
-var server = require('http').Server(app)
-var io = require('socket.io')(server)
-
-io.on('connection', (socket) => {
-  console.log('a user connected');
-
-
-})
-
+//M3 - change app to server
 server.listen(3000, function () {
   console.log('Backend server for Electron App running on port 3000!')
 })
 
-
-
-
+// app.listen(3000, function () {
+//   console.log('Backend server for Electron App running on port 3000!')
+// })
 module.exports = app
