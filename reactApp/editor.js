@@ -154,8 +154,10 @@ class MyEditor extends React.Component {
         editorState: newState,
         currentFontSize: obj.font,
         inlineStyles: obj.inlineStyles,
+        history: obj.history,
         docTitle: obj.title
       })
+      console.log("HISTORY", this.state.history)
       return
       //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
@@ -286,6 +288,13 @@ class MyEditor extends React.Component {
   }
 
 
+  formatHistoryPickerMenu() {
+    const historyArr = this.state.history.slice(this.state.history.length-4, this.state.history.length+1)
+    console.log(this.state.history)
+    historyArr.forEach((obj)=> {
+      return(<MenuItem primaryText="Hi"/>)
+    })
+  }
 
 historyPicker() {
   return (
@@ -306,10 +315,7 @@ historyPicker() {
         >
         <Paper>
           <Menu>
-            <MenuItem primaryText="Maps" />
-            <MenuItem primaryText="Books" />
-            <MenuItem primaryText="Flights" />
-            <MenuItem primaryText="Apps" />
+            {this.formatHistoryPickerMenu.bind(this)}
           </Menu>
           </Paper>
         </Popover>
