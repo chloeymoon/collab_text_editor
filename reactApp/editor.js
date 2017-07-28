@@ -1,8 +1,10 @@
 var React = require('react');
 import {DefaultDraftBlockRenderMap, Editor, EditorState, RichUtils, convertToRaw, convertFromRaw} from 'draft-js';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import AppBar from 'material-ui/AppBar';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
 import IconButton from 'material-ui/IconButton';
@@ -18,7 +20,6 @@ import { Map } from 'immutable';
 
 import { Link } from 'react-router-dom'
 
-
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
     wrapper:<div className="left-align"/>
@@ -31,6 +32,19 @@ const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   }
 }))
 
+
+//MUI Theme for doc portal
+const muiTheme = getMuiTheme({
+  palette: {
+    textColor: colors.black,
+    appbarColor: colors.white,
+    editorBoxColor: colors.lightBlue50
+  },
+  appBar: {
+    height: 70,
+    textColor: colors.black
+  }
+})
 
 //M3
 import io from 'socket.io-client'
@@ -97,8 +111,6 @@ class MyEditor extends React.Component {
         this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
       })
     })
-
-
 
     this.socket.on('userLeft', () => {
       console.log("user left");
@@ -200,9 +212,7 @@ class MyEditor extends React.Component {
     }).then((response) => {
       this.setState({history: response.updatedHistory})
     })
-  }
-
-
+  };
 
   toggleFormat(e, style, block) {
     e.preventDefault();
@@ -221,10 +231,10 @@ class MyEditor extends React.Component {
     return (
       <MuiThemeProvider>
         <FlatButton
-          backgroundColor={this.state.editorState.getCurrentInlineStyle().has(style)? colors.lightBlue50:colors.grey50}
+          backgroundColor={this.state.editorState.getCurrentInlineStyle().has(style)? colors.lightBlue50:colors.grey100}
           icon={<FontIcon className="material-icons">{icon}</FontIcon>}
           onMouseDown={(e)=>this.toggleFormat(e, style, block)}/>
-        </MuiThemeProvider>
+      </MuiThemeProvider>
     )
   }
 
@@ -263,7 +273,7 @@ class MyEditor extends React.Component {
     <div style={{display:'inline-block'}}>
     <MuiThemeProvider>
       <FlatButton
-        backgroundColor={colors.grey50}
+        backgroundColor={colors.grey100}
         icon={<FontIcon className="material-icons">format_color_text</FontIcon>}
         onClick={this.openColorPicker.bind(this)}/>
       </MuiThemeProvider>
@@ -378,7 +388,7 @@ historyPicker() {
         return(
       <MuiThemeProvider>
         <FlatButton
-          backgroundColor={colors.grey50}
+          backgroundColor={colors.grey100}
           icon={<FontIcon className="material-icons">{shrink? 'zoom_out': 'zoom_in'}</FontIcon>}
           onMouseDown={()=> this.applyChangeFontSize(shrink)}/>
       </MuiThemeProvider>
@@ -398,15 +408,24 @@ historyPicker() {
           top: this.state.top, left: this.state.left}}>
         </div>
       )}
-      <MuiThemeProvider>
-      <AppBar title={this.state.docTitle} iconElementRight={
+      <MuiThemeProvider muiTheme={muiTheme}>
+      <AppBar title={this.state.docTitle}
+        iconElementRight={
         <div>
-          <FlatButton onClick={() => this.saveDocument()} label="Save" />
-          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
-          {this.state.currentUsers.map((user) => (<div>{user}</div>))}
-        </div>
-      }/>
+          <div><div style={{display: 'inline-block'}}>document id: {this.props.match.params.docId}</div>
+          <div style={{display:'inline-block'}}><FlatButton onClick={() => this.saveDocument()} label="Save" />
+          <Link to="/documentPortal"><FlatButton label="Back" /></Link></div>
+            {this.state.currentUsers.map((user) => (<div>{user}</div>))}
+          </div>
+        </div>}
+        iconElementLeft={<IconButton><NavigationClose /></IconButton>}
+        style={{backgroundColor:colors.blueGrey200}}
+        zDepth={0}
+        showMenuIconButton={false}
+    />
+
       </MuiThemeProvider>
+
       <div className="toolbar">
         {this.formatButton({icon: 'format_bold', style: 'BOLD'})}
         {this.formatButton({icon: 'format_italic', style: 'ITALIC'})}
@@ -422,7 +441,11 @@ historyPicker() {
         {this.historyPicker()}
       </div>
 
-      <div className='editorcontainer'>
+      <div className="searchbar">
+        <input type="text"/><input type="submit" value="Submit"/>
+      </div>
+
+      <div className='editorcontainer' style={{backgroundColor: colors.grey100}}>
       <div className='editor'>
       <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"BLUE": {backgroundColor:colors.blue200}})} editorState={this.state.editorState} onChange={this.onChange}
         blockRenderMap={myBlockTypes}/>
