@@ -17,8 +17,9 @@ const documentSchema = mongoose.Schema({
   body: Object,
   font: Number,
   inlineStyles: Object,
-  password: String
-})
+  password: String,
+  history: []
+});
 const User = mongoose.model('User', userSchema)
 const Document = mongoose.model('Document', documentSchema)
 

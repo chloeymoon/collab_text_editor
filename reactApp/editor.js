@@ -10,6 +10,9 @@ import RaisedButton from 'material-ui/RaisedButton';
 import * as colors from 'material-ui/styles/colors'
 import { BlockPicker } from 'react-color';
 import Popover from 'material-ui/Popover';
+import Paper from 'material-ui/Paper';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 require('./css/main.css')
 import { Map } from 'immutable';
 
@@ -40,7 +43,11 @@ class MyEditor extends React.Component {
       currentFontSize: 12,
       inlineStyles: {},
       status: false,
-      backStatus: false
+      backStatus: false,
+      docTitle: "",
+      user: "",
+      currentUsers: [],
+      history: []
     };
 
     this.previousHighlight = null;
@@ -50,11 +57,12 @@ class MyEditor extends React.Component {
 
 
     //listener for user join event
-    this.socket.on('userJoined', () => {
-      console.log('user joined');
+    this.socket.on('userJoined', ({user}) => {
+      console.log(user, 'joined');
+      const newUsers = this.state.currentUsers
+      newUsers.push(user)
+      this.setState({currentUsers: newUsers})
     });
-    //emits the document ID when joined
-    this.socket.emit('join', {doc: this.props.match.params.docId});
 
 
     //event handler for updating editor content when other user edits
@@ -143,15 +151,22 @@ class MyEditor extends React.Component {
     }).then((response) => {
       return (response.json())
     }).then((obj)=>{
-      const rawCS =  JSON.parse(obj.body);
+      const rawCS =  JSON.parse(obj.doc.body);
       const contentState = convertFromRaw(rawCS);
       const newState = EditorState.createWithContent(contentState);
       //console.log(this.state.editorState)
       this.setState({
         editorState: newState,
-        currentFontSize: obj.font,
-        inlineStyles: obj.inlineStyles
+        currentFontSize: obj.doc.font,
+        inlineStyles: obj.doc.inlineStyles,
+        history: obj.doc.history,
+        docTitle: obj.doc.title,
+        user: obj.user
       })
+      console.log("HISTORY", this.state.history)
+
+      //emits the document ID when joined
+      this.socket.emit('join', {doc: this.props.match.params.docId, user: this.state.user});
       return
       //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
@@ -187,7 +202,7 @@ class MyEditor extends React.Component {
     }).then((response) => {
       return response.json()
     }).then((response) => {
-      console.log(response)
+      this.setState({history: response.updatedHistory})
     })
   }
 
@@ -271,6 +286,74 @@ class MyEditor extends React.Component {
     )
   }
 
+  openHistoryPicker(e) {
+    this.setState({
+      historyPickerOpen: true,
+      historyPickerButton: e.target
+    });
+  }
+
+  closeHistoryPicker() {
+    this.setState({
+      historyPickerOpen: false,
+    });
+  }
+
+  historyOnClick(obj) {
+    console.log(obj)
+    const rawCS =  JSON.parse(obj.body);
+    const contentState = convertFromRaw(rawCS);
+    const newState = EditorState.createWithContent(contentState);
+    this.setState({
+      editorState: newState,
+      currentFontSize: obj.currentFontSize,
+      inlineStyles: obj.inlineStyles
+    })
+  }
+
+  menuItems() {
+    const historyArr = this.state.history;
+    if (historyArr) {
+      const recentHistory = historyArr.slice(historyArr.length-4, historyArr.length+1).reverse()
+    return recentHistory.map((obj)=> {
+      return (
+        <MenuItem primaryText={obj.date} onClick={()=>this.historyOnClick(obj)}/>
+      )
+    })
+  }
+  }
+
+historyPicker() {
+  return (
+    <div style={{display:'inline-block'}}>
+    <MuiThemeProvider>
+      <FlatButton
+        backgroundColor={colors.grey50}
+        icon={<FontIcon className="material-icons">history</FontIcon>}
+        onClick={this.openHistoryPicker.bind(this)}/>
+      </MuiThemeProvider>
+      <MuiThemeProvider>
+      <Popover
+          open={this.state.historyPickerOpen}
+          anchorEl={this.state.historyPickerButton}
+          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+          targetOrigin={{horizontal: 'left', vertical: 'top'}}
+          onRequestClose={this.closeHistoryPicker.bind(this)}
+        >
+        <Paper>
+          <Menu>
+          {this.menuItems()}
+          </Menu>
+          </Paper>
+        </Popover>
+        </MuiThemeProvider>
+        </div>
+  )
+}
+
+
+
+
   applyChangeFontSize(shrink) {
     var newFontSize = this.state.currentFontSize + (shrink? -4 : 4)
     var thingToRemove = String(this.state.currentFontSize)
@@ -327,10 +410,15 @@ class MyEditor extends React.Component {
         </div>
       )}
       <MuiThemeProvider>
-      <AppBar title="Document Name" iconElementRight={
+      <AppBar title={this.state.docTitle} iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
+<<<<<<< HEAD
           <FlatButton onClick={() => this.checkStatus()} label="Back" />
+=======
+          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
+          {this.state.currentUsers.map((user) => (<div>{user}</div>))}
+>>>>>>> 8d355f9a2db84dc421b1c346b8ad9ae7e8d66864
         </div>
       }/>
       </MuiThemeProvider>
@@ -346,6 +434,7 @@ class MyEditor extends React.Component {
         {this.changeFontSize(true)}
         {this.formatButton({icon: 'format_list_numbered', style: 'ordered-list-item', block: true})}
         {this.formatButton({icon: 'format_list_bulleted', style: 'unordered-list-item', block:true})}
+        {this.historyPicker()}
       </div>
 
       <div className='editorcontainer'>
