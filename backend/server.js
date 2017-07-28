@@ -34,7 +34,7 @@ io.on('connection', socket =>{
   });
 
   //event handler for user joining a room
-  socket.on('join', ({doc}) => {
+  socket.on('join', ({doc, user}) => {
     console.log('joined', doc);
     //joining room that has the name of the document id
     //built in function for socket.io
@@ -42,7 +42,7 @@ io.on('connection', socket =>{
     socket.theOneRoom = doc; //saving the doc id for future use
 
     //sending to everyone in room named doc excluding the person who sent the message
-    socket.broadcast.to(doc).emit('userJoined');
+    socket.broadcast.to(doc).emit('userJoined', {user: user});
   });
 
   socket.on('cursorMove', selection => {
@@ -188,23 +188,28 @@ app.get('/editDocument/:docId', function(req,res){
   Document.findById(req.params.docId).exec(function(err,doc){
     //console.log(req.params.docId)
     //console.log(doc)
-    res.json(doc)
+    const user = req.user.username
+    res.json({doc: doc, user: user})
   })
 })
 
 //Save Document to Database
 app.post('/saveDocument/:docId', function(req,res){
+  const currentTime = new Date()
   Document.findById(req.params.docId).exec( function(err, foundDoc){
-    //console.log("FOUND DOC!", foundDoc)
     if (err) {console.log(err)}
     foundDoc.body = req.body.updatedDocument
     foundDoc.font = req.body.currentFontSize
     foundDoc.inlineStyles = req.body.inlineStyles
-    //console.log("BODDDDY", req.body.currentFontSize)
+    foundDoc.history.push({
+      date: currentTime.toString().substring(0,24),
+      body:req.body.updatedDocument,
+      currentFontSize: req.body.currentFontSize,
+      inlineStyles: req.body.inlineStyles
+    });
     foundDoc.save(function(err, updatedDocument){
       if (err) {console.log(err)}
-      //console.log("this", updatedDocument)
-      res.json({success: true})
+      res.send({success: true, updatedHistory: updatedDocument.history})
     })
   })
 })

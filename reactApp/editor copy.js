@@ -10,7 +10,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import * as colors from 'material-ui/styles/colors'
 import { BlockPicker } from 'react-color';
 import Popover from 'material-ui/Popover';
-require('./css/main.css')
+//require('./css/main.css')
 import { Map } from 'immutable';
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
