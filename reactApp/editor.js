@@ -45,6 +45,7 @@ class MyEditor extends React.Component {
       docTitle: "",
       user: "",
       currentUsers: []
+      history: []
     };
 
     this.previousHighlight = null;
@@ -165,7 +166,6 @@ class MyEditor extends React.Component {
 
       //emits the document ID when joined
       this.socket.emit('join', {doc: this.props.match.params.docId, user: this.state.user});
-
       return
       //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
@@ -198,7 +198,7 @@ class MyEditor extends React.Component {
     }).then((response) => {
       return response.json()
     }).then((response) => {
-      console.log(response)
+      this.setState({history: response.updatedHistory})
     })
   }
 
@@ -295,13 +295,28 @@ class MyEditor extends React.Component {
     });
   }
 
-
-  formatHistoryPickerMenu() {
-    const historyArr = this.state.history.slice(this.state.history.length-4, this.state.history.length+1)
-    console.log(this.state.history)
-    historyArr.forEach((obj)=> {
-      return(<MenuItem primaryText="Hi"/>)
+  historyOnClick(obj) {
+    console.log(obj)
+    const rawCS =  JSON.parse(obj.body);
+    const contentState = convertFromRaw(rawCS);
+    const newState = EditorState.createWithContent(contentState);
+    this.setState({
+      editorState: newState,
+      currentFontSize: obj.currentFontSize,
+      inlineStyles: obj.inlineStyles
     })
+  }
+
+  menuItems() {
+    const historyArr = this.state.history;
+    if (historyArr) {
+      const recentHistory = historyArr.slice(historyArr.length-4, historyArr.length+1).reverse()
+    return recentHistory.map((obj)=> {
+      return (
+        <MenuItem primaryText={obj.date} onClick={()=>this.historyOnClick(obj)}/>
+      )
+    })
+  }
   }
 
 historyPicker() {
@@ -323,7 +338,7 @@ historyPicker() {
         >
         <Paper>
           <Menu>
-            {this.formatHistoryPickerMenu.bind(this)}
+          {this.menuItems()}
           </Menu>
           </Paper>
         </Popover>
