@@ -57,10 +57,14 @@ class MyEditor extends React.Component {
     //listener for user join event
     this.socket.on('userJoined', ({user}) => {
       console.log(user, 'joined');
-      const newUsers = this.state.currentUsers
-      newUsers.push(user)
-      this.setState({currentUsers: newUsers})
+      // const newUsers = this.state.currentUsers
+      // newUsers.push(user)
+      // this.setState({currentUsers: newUsers})
     });
+
+    this.socket.on('updateUsers', ({users}) => {
+      this.setState({currentUsers: users})
+    })
 
 
     //event handler for updating editor content when other user edits
@@ -160,7 +164,8 @@ class MyEditor extends React.Component {
         inlineStyles: obj.doc.inlineStyles,
         history: obj.doc.history,
         docTitle: obj.doc.title,
-        user: obj.user
+        user: obj.user,
+        currentUsers: []
       })
       console.log("HISTORY", this.state.history)
 
@@ -404,7 +409,7 @@ historyPicker() {
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
           <Link to="/documentPortal"><FlatButton label="Back" /></Link>
-          {this.state.currentUsers.map((user) => (<div>{user}</div>))}
+          <div>{this.state.currentUsers.map((user) => (<span>{user}</span>))}</div>
         </div>
       }/>
       </MuiThemeProvider>
