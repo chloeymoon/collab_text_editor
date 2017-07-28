@@ -42,7 +42,9 @@ class MyEditor extends React.Component {
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
       inlineStyles: {},
-      docTitle: ""
+      docTitle: "",
+      user: "",
+      currentUsers: []
     };
 
     this.previousHighlight = null;
@@ -52,11 +54,12 @@ class MyEditor extends React.Component {
 
 
     //listener for user join event
-    this.socket.on('userJoined', () => {
-      console.log('user joined');
+    this.socket.on('userJoined', ({user}) => {
+      console.log(user, 'joined');
+      const newUsers = this.state.currentUsers
+      newUsers.push(user)
+      this.setState({currentUsers: newUsers})
     });
-    //emits the document ID when joined
-    this.socket.emit('join', {doc: this.props.match.params.docId});
 
 
     //event handler for updating editor content when other user edits
@@ -146,18 +149,23 @@ class MyEditor extends React.Component {
     }).then((response) => {
       return (response.json())
     }).then((obj)=>{
-      const rawCS =  JSON.parse(obj.body);
+      const rawCS =  JSON.parse(obj.doc.body);
       const contentState = convertFromRaw(rawCS);
       const newState = EditorState.createWithContent(contentState);
       //console.log(this.state.editorState)
       this.setState({
         editorState: newState,
-        currentFontSize: obj.font,
-        inlineStyles: obj.inlineStyles,
-        history: obj.history,
-        docTitle: obj.title
+        currentFontSize: obj.doc.font,
+        inlineStyles: obj.doc.inlineStyles,
+        history: obj.doc.history,
+        docTitle: obj.doc.title,
+        user: obj.user
       })
       console.log("HISTORY", this.state.history)
+
+      //emits the document ID when joined
+      this.socket.emit('join', {doc: this.props.match.params.docId, user: this.state.user});
+
       return
       //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
@@ -380,6 +388,7 @@ historyPicker() {
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
           <Link to="/documentPortal"><FlatButton label="Back" /></Link>
+          {this.state.currentUsers.map((user) => (<div>{user}</div>))}
         </div>
       }/>
       </MuiThemeProvider>
