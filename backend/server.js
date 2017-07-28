@@ -196,23 +196,19 @@ app.get('/editDocument/:docId', function(req,res){
 app.post('/saveDocument/:docId', function(req,res){
   const currentTime = new Date()
   Document.findById(req.params.docId).exec( function(err, foundDoc){
-    //console.log("FOUND DOC!", foundDoc)
     if (err) {console.log(err)}
     foundDoc.body = req.body.updatedDocument
     foundDoc.font = req.body.currentFontSize
     foundDoc.inlineStyles = req.body.inlineStyles
-    foundDoc.history.push({[currentTime]: {
-      date: currentTime,
+    foundDoc.history.push({
+      date: currentTime.toString().substring(0,24),
       body:req.body.updatedDocument,
       currentFontSize: req.body.currentFontSize,
       inlineStyles: req.body.inlineStyles
-    }
     });
-    //console.log("BODDDDY", req.body.currentFontSize)
     foundDoc.save(function(err, updatedDocument){
       if (err) {console.log(err)}
-      //console.log("this", updatedDocument)
-      res.json({success: true})
+      res.send({success: true, updatedHistory: updatedDocument.history})
     })
   })
 })
