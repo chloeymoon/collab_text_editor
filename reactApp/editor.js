@@ -1,8 +1,10 @@
 var React = require('react');
 import {DefaultDraftBlockRenderMap, Editor, EditorState, RichUtils, convertToRaw, convertFromRaw} from 'draft-js';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import AppBar from 'material-ui/AppBar';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
 import IconButton from 'material-ui/IconButton';
@@ -18,7 +20,6 @@ import { Map } from 'immutable';
 
 import { Link } from 'react-router-dom'
 
-
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   left: {
     wrapper:<div className="left-align"/>
@@ -31,6 +32,19 @@ const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
   }
 }))
 
+
+//MUI Theme for doc portal
+const muiTheme = getMuiTheme({
+  palette: {
+    textColor: colors.black,
+    appbarColor: colors.white,
+    editorBoxColor: colors.lightBlue50
+  },
+  appBar: {
+    height: 70,
+    textColor: colors.black
+  }
+})
 
 //M3
 import io from 'socket.io-client'
@@ -77,32 +91,30 @@ class MyEditor extends React.Component {
 
     //event handler for cursor
     this.socket.on('receiveNewCursor', incomingSelectionObj => {
-    let editorState = this.state.editorState
-    const ogEditorState = editorState //saving original editorstate
-    const ogSelection = editorState.getSelection() //saving original selection
+      let editorState = this.state.editorState
+      const ogEditorState = editorState //saving original editorstate
+      const ogSelection = editorState.getSelection() //saving original selection
 
-    const incomingSelectionState = ogSelection.merge(incomingSelectionObj) //taking original selection state and changing values to incoming one
+      const incomingSelectionState = ogSelection.merge(incomingSelectionObj) //taking original selection state and changing values to incoming one
 
-    //change editor state to have the new selection state
-    const temporaryEditorState = EditorState.forceSelection(ogEditorState, incomingSelectionState)
+      //change editor state to have the new selection state
+      const temporaryEditorState = EditorState.forceSelection(ogEditorState, incomingSelectionState)
 
-    //if you set this editor state to the current editor state, the windows cursor will move
-    //second argument is a function that runs once setState has completed!
-    this.setState({editorState: temporaryEditorState}, () => {
+      //if you set this editor state to the current editor state, the windows cursor will move
+      //second argument is a function that runs once setState has completed!
+      this.setState({editorState: temporaryEditorState}, () => {
 
-      //getting window selection, different from the draft selection
-      const winSel = window.getSelection();
-      const range = winSel.getRangeAt(0)
-      //gives you screen coordinates that you can use to draw a box
-      const rects = range.getClientRects()[0];
-      const {top, left, bottom } = rects //shorthand for const top= rects.top
+        //getting window selection, different from the draft selection
+        const winSel = window.getSelection();
+        const range = winSel.getRangeAt(0)
+        //gives you screen coordinates that you can use to draw a box
+        const rects = range.getClientRects()[0];
+        const {top, left, bottom } = rects //shorthand for const top= rects.top
 
-      //save the coordinates and restore original editorState
-      this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
+        //save the coordinates and restore original editorState
+        this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
+      })
     })
-  })
-
-
 
     this.socket.on('userLeft', () => {
       console.log("user left");
@@ -120,7 +132,7 @@ class MyEditor extends React.Component {
         editorState = EditorState.acceptSelection(editorState, this.previousHighlight)
 
         //toggle off the old highlight
-        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+        editorState = RichUtils.toggleInlineStyle(editorState, 'BLUE')
 
         //come back to most recent selection
         editorState = EditorState.acceptSelection(editorState, selection)
@@ -131,7 +143,7 @@ class MyEditor extends React.Component {
       if (selection.getStartOffset() === selection.getEndOffset()) {
         this.socket.emit('cursorMove', selection);
       } else {
-        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+        editorState = RichUtils.toggleInlineStyle(editorState, 'BLUE')
         this.previousHighlight = editorState.getSelection()
       }
 
@@ -206,9 +218,7 @@ class MyEditor extends React.Component {
     }).then((response) => {
       this.setState({history: response.updatedHistory})
     })
-  }
-
-
+  };
 
   toggleFormat(e, style, block) {
     e.preventDefault();
@@ -227,10 +237,10 @@ class MyEditor extends React.Component {
     return (
       <MuiThemeProvider>
         <FlatButton
-          backgroundColor={this.state.editorState.getCurrentInlineStyle().has(style)? colors.lightBlue50:colors.grey50}
+          backgroundColor={this.state.editorState.getCurrentInlineStyle().has(style)? colors.lightBlue50:colors.grey100}
           icon={<FontIcon className="material-icons">{icon}</FontIcon>}
           onMouseDown={(e)=>this.toggleFormat(e, style, block)}/>
-        </MuiThemeProvider>
+      </MuiThemeProvider>
     )
   }
 
@@ -269,7 +279,7 @@ class MyEditor extends React.Component {
     <div style={{display:'inline-block'}}>
     <MuiThemeProvider>
       <FlatButton
-        backgroundColor={colors.grey50}
+        backgroundColor={colors.grey100}
         icon={<FontIcon className="material-icons">format_color_text</FontIcon>}
         onClick={this.openColorPicker.bind(this)}/>
       </MuiThemeProvider>
@@ -384,7 +394,7 @@ historyPicker() {
         return(
       <MuiThemeProvider>
         <FlatButton
-          backgroundColor={colors.grey50}
+          backgroundColor={colors.grey100}
           icon={<FontIcon className="material-icons">{shrink? 'zoom_out': 'zoom_in'}</FontIcon>}
           onMouseDown={()=> this.applyChangeFontSize(shrink)}/>
       </MuiThemeProvider>
@@ -404,15 +414,24 @@ historyPicker() {
           top: this.state.top, left: this.state.left}}>
         </div>
       )}
-      <MuiThemeProvider>
-      <AppBar title={this.state.docTitle} iconElementRight={
+      <MuiThemeProvider muiTheme={muiTheme}>
+      <AppBar title={this.state.docTitle}
+        iconElementRight={
         <div>
-          <FlatButton onClick={() => this.saveDocument()} label="Save" />
-          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
-          <div>{this.state.currentUsers.map((user) => (<span>{user}</span>))}</div>
-        </div>
-      }/>
+          <div><div style={{display: 'inline-block'}}>document id: {this.props.match.params.docId}</div>
+          <div style={{display:'inline-block'}}><FlatButton onClick={() => this.saveDocument()} label="Save" />
+          <Link to="/documentPortal"><FlatButton label="Back" /></Link></div>
+            <div>{this.state.currentUsers.map((user) => (<span>{user}</span>))}</div>
+          </div>
+        </div>}
+        iconElementLeft={<IconButton><NavigationClose /></IconButton>}
+        style={{backgroundColor:colors.blueGrey200}}
+        zDepth={0}
+        showMenuIconButton={false}
+    />
+
       </MuiThemeProvider>
+
       <div className="toolbar">
         {this.formatButton({icon: 'format_bold', style: 'BOLD'})}
         {this.formatButton({icon: 'format_italic', style: 'ITALIC'})}
@@ -428,9 +447,13 @@ historyPicker() {
         {this.historyPicker()}
       </div>
 
-      <div className='editorcontainer'>
+      <div className="searchbar">
+        <input type="text"/><input type="submit" value="Submit"/>
+      </div>
+
+      <div className='editorcontainer' style={{backgroundColor: colors.grey100}}>
       <div className='editor'>
-      <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"RED": {backgroundColor:'red'}})} editorState={this.state.editorState} onChange={this.onChange}
+      <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"BLUE": {backgroundColor:colors.blue200}})} editorState={this.state.editorState} onChange={this.onChange}
         blockRenderMap={myBlockTypes}/>
       </div>
       </div>

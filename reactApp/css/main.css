@@ -1,17 +1,25 @@
 body {
-  overflow: hidden
+  overflow: hidden;
+  background-color: 'white'
 }
 
 .editorcontainer {
   border-style: solid;
-  border-width: 1px;
+  border-width: 0px;
   height: 1000px;
   background-color:#D3D3D3;
   overflow: scroll
 }
 
+.container {
+  position: relative;
+  background-color: #F5F5F5;
+}
+
+
 .toolbar {
- margin: 0 auto;
+  margin: 0 auto;
+  width: 90%;
 }
 
 .editor {
@@ -34,4 +42,8 @@ body {
 
 .right-align {
   text-align: right;
+}
+
+.searchbar {
+  margin: 90 90 90 90;
 }
