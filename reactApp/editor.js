@@ -413,12 +413,8 @@ historyPicker() {
       <AppBar title={this.state.docTitle} iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
-<<<<<<< HEAD
           <FlatButton onClick={() => this.checkStatus()} label="Back" />
-=======
-          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
           {this.state.currentUsers.map((user) => (<div>{user}</div>))}
->>>>>>> 8d355f9a2db84dc421b1c346b8ad9ae7e8d66864
         </div>
       }/>
       </MuiThemeProvider>
