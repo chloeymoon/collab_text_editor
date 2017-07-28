@@ -13,7 +13,7 @@ import Popover from 'material-ui/Popover';
 require('./css/main.css')
 import { Map } from 'immutable';
 
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
@@ -38,7 +38,9 @@ class MyEditor extends React.Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
-      inlineStyles: {}
+      inlineStyles: {},
+      status: false,
+      backStatus: false
     };
 
     this.previousHighlight = null;
@@ -100,7 +102,6 @@ class MyEditor extends React.Component {
       //save current selection
       const selection = editorState.getSelection()
 
-
       //need a new editor state with old selection to toggle that style
       if (this.previousHighlight) {
 
@@ -128,7 +129,7 @@ class MyEditor extends React.Component {
       //there is a function that comes with content state called convertToRaw
       const stringifiedContent = JSON.stringify(convertToRaw(contentState));
       this.socket.emit('newContent', stringifiedContent);
-      this.setState({editorState});
+      this.setState({editorState, status: false});
     };
   }
 
@@ -166,6 +167,9 @@ class MyEditor extends React.Component {
 
   //Saves Document to Database
   saveDocument() {
+    //sets document save status to true
+    this.setState({status: true})
+
     const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
     const strCS = JSON.stringify(rawCS);
     //console.log(this.state.editorState)
@@ -302,6 +306,13 @@ class MyEditor extends React.Component {
     )
   }
 
+  checkStatus(){
+    console.log('checking Status!')
+    this.state.status ?
+      (this.setState({backStatus: true})):
+      (alert("Please make sure to save, or else your changes may be lost!"));
+  }
+
   render() {
     return (
       <div className='container'>
@@ -319,7 +330,7 @@ class MyEditor extends React.Component {
       <AppBar title="Document Name" iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
-          <Link to="/documentPortal"><FlatButton label="Back" /></Link>
+          <FlatButton onClick={() => this.checkStatus()} label="Back" />
         </div>
       }/>
       </MuiThemeProvider>
@@ -343,6 +354,7 @@ class MyEditor extends React.Component {
         blockRenderMap={myBlockTypes}/>
       </div>
       </div>
+      {this.state.backStatus ? <Redirect to="/documentPortal" /> : null}
       </div>
     )
   }

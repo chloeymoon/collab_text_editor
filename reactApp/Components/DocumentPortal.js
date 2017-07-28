@@ -1,6 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import AppBar from 'material-ui/AppBar';
+import FlatButton from 'material-ui/FlatButton';
+
 class DocumentPortal extends React.Component {
   constructor(props) {
     super(props)
@@ -106,7 +110,18 @@ class DocumentPortal extends React.Component {
   render () {
     return (
       <div>
-        <h1>Documents Portal</h1>
+        <MuiThemeProvider>
+        <AppBar
+          title="Document Portal: Welcome"
+          iconElementRight={
+            <Link to="/login">
+            <FlatButton onClick={() => this.handleLogout()} style={{color: 'white'}} label="LOGOUT" />
+            </Link>
+          }
+          showMenuIconButton={false}
+        />
+      </MuiThemeProvider>
+
         <input
           type="text"
           placeholder="new document title"
@@ -141,7 +156,6 @@ class DocumentPortal extends React.Component {
           onClick={() => this.addSharedDocument()}
         />
         <div>
-        <Link to="/login" onClick={() => this.handleLogout()}>Logout</Link>
         </div>
         {/* {this.state.success ? <Redirect to="/login" /> : null} */}
       </div>
