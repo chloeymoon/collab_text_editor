@@ -10,6 +10,9 @@ import RaisedButton from 'material-ui/RaisedButton';
 import * as colors from 'material-ui/styles/colors'
 import { BlockPicker } from 'react-color';
 import Popover from 'material-ui/Popover';
+import Paper from 'material-ui/Paper';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 require('./css/main.css')
 import { Map } from 'immutable';
 
@@ -267,6 +270,55 @@ class MyEditor extends React.Component {
     )
   }
 
+  openHistoryPicker(e) {
+    this.setState({
+      historyPickerOpen: true,
+      historyPickerButton: e.target
+    });
+  }
+
+  closeHistoryPicker() {
+    this.setState({
+      historyPickerOpen: false,
+    });
+  }
+
+
+
+historyPicker() {
+  return (
+    <div style={{display:'inline-block'}}>
+    <MuiThemeProvider>
+      <FlatButton
+        backgroundColor={colors.grey50}
+        icon={<FontIcon className="material-icons">history</FontIcon>}
+        onClick={this.openHistoryPicker.bind(this)}/>
+      </MuiThemeProvider>
+      <MuiThemeProvider>
+      <Popover
+          open={this.state.historyPickerOpen}
+          anchorEl={this.state.historyPickerButton}
+          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+          targetOrigin={{horizontal: 'left', vertical: 'top'}}
+          onRequestClose={this.closeHistoryPicker.bind(this)}
+        >
+        <Paper>
+          <Menu>
+            <MenuItem primaryText="Maps" />
+            <MenuItem primaryText="Books" />
+            <MenuItem primaryText="Flights" />
+            <MenuItem primaryText="Apps" />
+          </Menu>
+          </Paper>
+        </Popover>
+        </MuiThemeProvider>
+        </div>
+  )
+}
+
+
+
+
   applyChangeFontSize(shrink) {
     var newFontSize = this.state.currentFontSize + (shrink? -4 : 4)
     var thingToRemove = String(this.state.currentFontSize)
@@ -335,6 +387,7 @@ class MyEditor extends React.Component {
         {this.changeFontSize(true)}
         {this.formatButton({icon: 'format_list_numbered', style: 'ordered-list-item', block: true})}
         {this.formatButton({icon: 'format_list_bulleted', style: 'unordered-list-item', block:true})}
+        {this.historyPicker()}
       </div>
 
       <div className='editorcontainer'>
