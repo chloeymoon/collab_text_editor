@@ -200,6 +200,11 @@ app.post('/saveDocument/:docId', function(req,res){
     foundDoc.body = req.body.updatedDocument
     foundDoc.font = req.body.currentFontSize
     foundDoc.inlineStyles = req.body.inlineStyles
+    foundDoc.history = Object.assign({}, foundDoc.history, {[currentTime]: {
+      body:req.body.updatedDocument,
+      currentFontSize: req.body.currentFontSize,
+      inlineStyles: req.body.inlineStyles}
+    });
     //console.log("BODDDDY", req.body.currentFontSize)
     foundDoc.save(function(err, updatedDocument){
       if (err) {console.log(err)}
