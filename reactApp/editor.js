@@ -16,7 +16,7 @@ import MenuItem from 'material-ui/MenuItem';
 require('./css/main.css')
 import { Map } from 'immutable';
 
-import { Link, Redirect } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
@@ -42,8 +42,6 @@ class MyEditor extends React.Component {
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
       inlineStyles: {},
-      status: false,
-      backStatus: false,
       docTitle: "",
       user: "",
       currentUsers: [],
@@ -75,30 +73,30 @@ class MyEditor extends React.Component {
 
     //event handler for cursor
     this.socket.on('receiveNewCursor', incomingSelectionObj => {
-    let editorState = this.state.editorState
-    const ogEditorState = editorState //saving original editorstate
-    const ogSelection = editorState.getSelection() //saving original selection
+      let editorState = this.state.editorState
+      const ogEditorState = editorState //saving original editorstate
+      const ogSelection = editorState.getSelection() //saving original selection
 
-    const incomingSelectionState = ogSelection.merge(incomingSelectionObj) //taking original selection state and changing values to incoming one
+      const incomingSelectionState = ogSelection.merge(incomingSelectionObj) //taking original selection state and changing values to incoming one
 
-    //change editor state to have the new selection state
-    const temporaryEditorState = EditorState.forceSelection(ogEditorState, incomingSelectionState)
+      //change editor state to have the new selection state
+      const temporaryEditorState = EditorState.forceSelection(ogEditorState, incomingSelectionState)
 
-    //if you set this editor state to the current editor state, the windows cursor will move
-    //second argument is a function that runs once setState has completed!
-    this.setState({editorState: temporaryEditorState}, () => {
+      //if you set this editor state to the current editor state, the windows cursor will move
+      //second argument is a function that runs once setState has completed!
+      this.setState({editorState: temporaryEditorState}, () => {
 
-      //getting window selection, different from the draft selection
-      const winSel = window.getSelection();
-      const range = winSel.getRangeAt(0)
-      //gives you screen coordinates that you can use to draw a box
-      const rects = range.getClientRects()[0];
-      const {top, left, bottom } = rects //shorthand for const top= rects.top
+        //getting window selection, different from the draft selection
+        const winSel = window.getSelection();
+        const range = winSel.getRangeAt(0)
+        //gives you screen coordinates that you can use to draw a box
+        const rects = range.getClientRects()[0];
+        const {top, left, bottom } = rects //shorthand for const top= rects.top
 
-      //save the coordinates and restore original editorState
-      this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
+        //save the coordinates and restore original editorState
+        this.setState({ editorState: ogEditorState, top, left, height: bottom-top})
+      })
     })
-  })
 
 
 
@@ -110,6 +108,7 @@ class MyEditor extends React.Component {
       //save current selection
       const selection = editorState.getSelection()
 
+
       //need a new editor state with old selection to toggle that style
       if (this.previousHighlight) {
 
@@ -117,7 +116,7 @@ class MyEditor extends React.Component {
         editorState = EditorState.acceptSelection(editorState, this.previousHighlight)
 
         //toggle off the old highlight
-        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+        editorState = RichUtils.toggleInlineStyle(editorState, 'BLUE')
 
         //come back to most recent selection
         editorState = EditorState.acceptSelection(editorState, selection)
@@ -128,7 +127,7 @@ class MyEditor extends React.Component {
       if (selection.getStartOffset() === selection.getEndOffset()) {
         this.socket.emit('cursorMove', selection);
       } else {
-        editorState = RichUtils.toggleInlineStyle(editorState, 'RED')
+        editorState = RichUtils.toggleInlineStyle(editorState, 'BLUE')
         this.previousHighlight = editorState.getSelection()
       }
 
@@ -137,7 +136,7 @@ class MyEditor extends React.Component {
       //there is a function that comes with content state called convertToRaw
       const stringifiedContent = JSON.stringify(convertToRaw(contentState));
       this.socket.emit('newContent', stringifiedContent);
-      this.setState({editorState, status: false});
+      this.setState({editorState});
     };
   }
 
@@ -182,9 +181,6 @@ class MyEditor extends React.Component {
 
   //Saves Document to Database
   saveDocument() {
-    //sets document save status to true
-    this.setState({status: true})
-
     const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
     const strCS = JSON.stringify(rawCS);
     //console.log(this.state.editorState)
@@ -389,13 +385,6 @@ historyPicker() {
     )
   }
 
-  checkStatus(){
-    console.log('checking Status!')
-    this.state.status ?
-      (this.setState({backStatus: true})):
-      (alert("Please make sure to save, or else your changes may be lost!"));
-  }
-
   render() {
     return (
       <div className='container'>
@@ -413,12 +402,8 @@ historyPicker() {
       <AppBar title={this.state.docTitle} iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
-<<<<<<< HEAD
-          <FlatButton onClick={() => this.checkStatus()} label="Back" />
-=======
           <Link to="/documentPortal"><FlatButton label="Back" /></Link>
           {this.state.currentUsers.map((user) => (<div>{user}</div>))}
->>>>>>> 8d355f9a2db84dc421b1c346b8ad9ae7e8d66864
         </div>
       }/>
       </MuiThemeProvider>
@@ -439,11 +424,10 @@ historyPicker() {
 
       <div className='editorcontainer'>
       <div className='editor'>
-      <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"RED": {backgroundColor:'red'}})} editorState={this.state.editorState} onChange={this.onChange}
+      <Editor customStyleMap={Object.assign({}, this.state.inlineStyles, {"BLUE": {backgroundColor:colors.blue200}})} editorState={this.state.editorState} onChange={this.onChange}
         blockRenderMap={myBlockTypes}/>
       </div>
       </div>
-      {this.state.backStatus ? <Redirect to="/documentPortal" /> : null}
       </div>
     )
   }
