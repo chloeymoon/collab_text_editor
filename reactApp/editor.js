@@ -41,7 +41,8 @@ class MyEditor extends React.Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
-      inlineStyles: {}
+      inlineStyles: {},
+      docTitle: ""
     };
 
     this.previousHighlight = null;
@@ -152,7 +153,8 @@ class MyEditor extends React.Component {
       this.setState({
         editorState: newState,
         currentFontSize: obj.font,
-        inlineStyles: obj.inlineStyles
+        inlineStyles: obj.inlineStyles,
+        docTitle: obj.title
       })
       return
       //console.log("HERE", this.state.currentFontSize)
@@ -368,7 +370,7 @@ historyPicker() {
         </div>
       )}
       <MuiThemeProvider>
-      <AppBar title="Document Name" iconElementRight={
+      <AppBar title={this.state.docTitle} iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
           <Link to="/documentPortal"><FlatButton label="Back" /></Link>
