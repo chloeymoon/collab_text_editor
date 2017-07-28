@@ -16,7 +16,7 @@ import MenuItem from 'material-ui/MenuItem';
 require('./css/main.css')
 import { Map } from 'immutable';
 
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 
 
 const myBlockTypes = DefaultDraftBlockRenderMap.merge(new Map({
@@ -42,9 +42,11 @@ class MyEditor extends React.Component {
       editorState: EditorState.createEmpty(),
       currentFontSize: 12,
       inlineStyles: {},
+      status: false,
+      backStatus: false,
       docTitle: "",
       user: "",
-      currentUsers: []
+      currentUsers: [],
       history: []
     };
 
@@ -108,7 +110,6 @@ class MyEditor extends React.Component {
       //save current selection
       const selection = editorState.getSelection()
 
-
       //need a new editor state with old selection to toggle that style
       if (this.previousHighlight) {
 
@@ -136,7 +137,7 @@ class MyEditor extends React.Component {
       //there is a function that comes with content state called convertToRaw
       const stringifiedContent = JSON.stringify(convertToRaw(contentState));
       this.socket.emit('newContent', stringifiedContent);
-      this.setState({editorState});
+      this.setState({editorState, status: false});
     };
   }
 
@@ -181,6 +182,9 @@ class MyEditor extends React.Component {
 
   //Saves Document to Database
   saveDocument() {
+    //sets document save status to true
+    this.setState({status: true})
+
     const rawCS= convertToRaw(this.state.editorState.getCurrentContent());
     const strCS = JSON.stringify(rawCS);
     //console.log(this.state.editorState)
@@ -385,6 +389,13 @@ historyPicker() {
     )
   }
 
+  checkStatus(){
+    console.log('checking Status!')
+    this.state.status ?
+      (this.setState({backStatus: true})):
+      (alert("Please make sure to save, or else your changes may be lost!"));
+  }
+
   render() {
     return (
       <div className='container'>
@@ -402,8 +413,12 @@ historyPicker() {
       <AppBar title={this.state.docTitle} iconElementRight={
         <div>
           <FlatButton onClick={() => this.saveDocument()} label="Save" />
+<<<<<<< HEAD
+          <FlatButton onClick={() => this.checkStatus()} label="Back" />
+=======
           <Link to="/documentPortal"><FlatButton label="Back" /></Link>
           {this.state.currentUsers.map((user) => (<div>{user}</div>))}
+>>>>>>> 8d355f9a2db84dc421b1c346b8ad9ae7e8d66864
         </div>
       }/>
       </MuiThemeProvider>
@@ -428,6 +443,7 @@ historyPicker() {
         blockRenderMap={myBlockTypes}/>
       </div>
       </div>
+      {this.state.backStatus ? <Redirect to="/documentPortal" /> : null}
       </div>
     )
   }

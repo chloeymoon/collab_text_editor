@@ -6,20 +6,34 @@ import AppBar from 'material-ui/AppBar';
 import FlatButton from 'material-ui/FlatButton';
 import TextField from 'material-ui/TextField';
 
+require('../css/login-reg.css')
+
 const styles = {
   errorStyle: {
-    color: 'orange',
+    color: '#01579B',
   },
   underlineStyle: {
-    borderColor: 'orange',
+    borderColor: '#01579B',
   },
   floatingLabelStyle: {
-    color: 'orange',
+    color: 'white',
   },
   floatingLabelFocusStyle: {
-    color: 'blue',
+    color: '#01579B',
   },
+  underlineStyle: {
+    borderColor: 'white',
+  },
+  underlineFocusStyle: {
+    borderColor: '#01579B',
+  },
+  buttons: {
+    width: '100px',
+    margin: '2px',
+    color: 'white'
+  }
 };
+
 
 class Login extends React.Component {
   constructor(props) {
@@ -60,43 +74,64 @@ class Login extends React.Component {
 
   render () {
     return (
-      <div>
-        <MuiThemeProvider>
-          <AppBar title="Document Name" iconElementRight={<FlatButton label="Save" />}/>
-        </MuiThemeProvider>
-        <h1>Login</h1>
-        <MuiThemeProvider>
-          <TextField
-            type="text"
-            onChange={(e) => this.handleUsernameChange(e)}
-            value={this.state.username}
-            floatingLabelText="username"
-            floatingLabelStyle={styles.floatingLabelStyle}
-            floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
-          />
-        </MuiThemeProvider>
-        <MuiThemeProvider>
-          <TextField
-            type="password"
-            onChange={(e) => this.handlePasswordChange(e)}
-            value={this.state.password}
-            floatingLabelText="password"
-            floatingLabelStyle={styles.floatingLabelStyle}
-            floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
-          />
-        </MuiThemeProvider>
-        <div>
-          <MuiThemeProvider>
-            <FlatButton
-              label="LOGIN"
-              onClick={() => this.handleSubmit()}
-            />
-          </MuiThemeProvider>
+      <div className="blueBackground">
+      <div className="container">
+        <div className="login">
+          <img style={{display: 'block', marginLeft: 'auto', marginRight: 'auto'}} src="../reactApp/assets/logo.png" alt="Logo" height="75" width="75"/>
+          <h1 style={{textAlign: 'center'}}>Login</h1>
+          <div>
+            <MuiThemeProvider>
+              <TextField
+                type="text"
+                onChange={(e) => this.handleUsernameChange(e)}
+                value={this.state.username}
+                floatingLabelText="username"
+                floatingLabelStyle={styles.floatingLabelStyle}
+                floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
+                underlineStyle={styles.underlineStyle}
+                underlineFocusStyle={styles.underlineFocusStyle}
+              />
+            </MuiThemeProvider>
+          </div>
+          <div>
+            <MuiThemeProvider>
+              <TextField
+                type="password"
+                onChange={(e) => this.handlePasswordChange(e)}
+                value={this.state.password}
+                floatingLabelText="password"
+                floatingLabelStyle={styles.floatingLabelStyle}
+                floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
+                underlineStyle={styles.underlineStyle}
+                underlineFocusStyle={styles.underlineFocusStyle}
+              />
+            </MuiThemeProvider>
+          </div>
+          <div style={{textAlign: 'center'}}>
+            <MuiThemeProvider>
+              <FlatButton
+                style={styles.buttons}
+                label="LOGIN"
+                onClick={() => this.handleSubmit()}
+                hoverColor={'#01579B'}
+              />
+            </MuiThemeProvider>
+          </div>
+          <div style={{textAlign: 'center'}}>
+            <Link to="/register">
+            <MuiThemeProvider>
+              <FlatButton
+                style={styles.buttons}
+                label="REGISTER"
+                onClick={() => this.handleSubmit()}
+                hoverColor={'#01579B'}
+              />
+            </MuiThemeProvider></Link>
+            {this.state.success ? <Redirect to="/documentPortal" /> : null}
+          </div>
         </div>
-
-        <Link to="/register">Register</Link>
-        {this.state.success ? <Redirect to="/documentPortal" /> : null}
       </div>
+    </div>
     )
   }
 }
