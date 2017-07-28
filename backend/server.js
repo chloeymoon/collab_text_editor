@@ -29,6 +29,7 @@ const io = require('socket.io')(server)
 
 io.on('connection', socket =>{
 
+
   socket.on('hello', () => {
     console.log('hello');
   });
@@ -40,9 +41,16 @@ io.on('connection', socket =>{
     //built in function for socket.io
     socket.join(doc);
     socket.theOneRoom = doc; //saving the doc id for future use
+    socket.user = user
+
+    if (!io.sockets.in(doc).currentUsers) {
+      io.sockets.in(doc).currentUsers = []
+    }
+    io.sockets.in(doc).currentUsers.push(user)
 
     //sending to everyone in room named doc excluding the person who sent the message
     socket.broadcast.to(doc).emit('userJoined', {user: user});
+    io.sockets.in(doc).emit('updateUsers', {users: io.sockets.in(doc).currentUsers})
   });
 
   socket.on('cursorMove', selection => {
@@ -56,10 +64,20 @@ io.on('connection', socket =>{
   });
 
 //event handler to close socket when user leaves a document
-  socket.on('disconnect', ()=> {
+  socket.on('disconnect', () => {
     console.log('socket disconnected');
     socket.leave(socket.theOneRoom);
     socket.broadcast.to(socket.theOneRoom).emit('userLeft');
+
+    const currUsers = io.sockets.in(socket.theOneRoom).currentUsers
+    for (var i=0; i<currUsers.length; i++) {
+      if (currUsers[i] === socket.user) {
+        currUsers.splice(i,1)
+        io.sockets.in(socket.theOneRoom).emit('updateUsers', {users: currUsers})
+        break;
+      }
+    }
+
   });
 });
 

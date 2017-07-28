@@ -71,10 +71,14 @@ class MyEditor extends React.Component {
     //listener for user join event
     this.socket.on('userJoined', ({user}) => {
       console.log(user, 'joined');
-      const newUsers = this.state.currentUsers
-      newUsers.push(user)
-      this.setState({currentUsers: newUsers})
+      // const newUsers = this.state.currentUsers
+      // newUsers.push(user)
+      // this.setState({currentUsers: newUsers})
     });
+
+    this.socket.on('updateUsers', ({users}) => {
+      this.setState({currentUsers: users})
+    })
 
 
     //event handler for updating editor content when other user edits
@@ -172,12 +176,14 @@ class MyEditor extends React.Component {
         inlineStyles: obj.doc.inlineStyles,
         history: obj.doc.history,
         docTitle: obj.doc.title,
-        user: obj.user
+        user: obj.user,
+        currentUsers: []
       })
       console.log("HISTORY", this.state.history)
 
       //emits the document ID when joined
       this.socket.emit('join', {doc: this.props.match.params.docId, user: this.state.user});
+
       return
       //console.log("HERE", this.state.currentFontSize)
     }).catch((err) => {
@@ -415,7 +421,7 @@ historyPicker() {
           <div><div style={{display: 'inline-block'}}>document id: {this.props.match.params.docId}</div>
           <div style={{display:'inline-block'}}><FlatButton onClick={() => this.saveDocument()} label="Save" />
           <Link to="/documentPortal"><FlatButton label="Back" /></Link></div>
-            {this.state.currentUsers.map((user) => (<div>{user}</div>))}
+            <div>{this.state.currentUsers.map((user) => (<span>{user}</span>))}</div>
           </div>
         </div>}
         iconElementLeft={<IconButton><NavigationClose /></IconButton>}
